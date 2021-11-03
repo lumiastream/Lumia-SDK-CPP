@@ -64,7 +64,6 @@ public:
 
 	void getInfo(const callback &cb = nullptr)
 	{
-
 		json o = {};
 		o["method"] = "retrieve";
 		o["retrieve"] = true;
