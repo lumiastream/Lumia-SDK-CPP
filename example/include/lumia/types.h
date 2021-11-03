@@ -11,10 +11,8 @@
 // for convenience
 using json = nlohmann::json;
 
-
-
-
-enum class LumiaSDKCommandTypes : int {
+enum class LumiaSDKCommandTypes : int
+{
     ALERT = 1,
     MIDI = 2,
     OSC = 3,
@@ -32,8 +30,8 @@ enum class LumiaSDKCommandTypes : int {
     TTS = 15
 };
 
-
-enum class LumiaSDKAlertValues {
+enum class LumiaSDKAlertValues
+{
     TWITCH_FOLLOWER = 16,
     TWITCH_SUBSCRIBER = 17,
     TWITCH_BITS = 18,
@@ -67,77 +65,20 @@ enum class LumiaSDKAlertValues {
     PULSE_CALORIES = 46
 };
 
-
-
-
-enum class LumiaSdkEventTypes {
-    CHAT = 47,
-    CHAT_TWITCH = 48,
-    CHAT_FACEBOOK = 49,
-    CHAT_YOUTUBE = 50,
-    CHAT_GLIMESH = 51,
-    CHAT_TROVO = 52,
-    CHAT_COMMANDS = 53,
-    CHAT_COMMANDS_TWITCH = 54,
-    CHAT_COMMANDS_FACEBOOK = 55,
-    CHAT_COMMANDS_YOUTUBE = 56,
-    CHAT_COMMANDS_GLIMESH = 57,
-    CHAT_COMMANDS_TROVO = 58,
-    TIMEOFUSE = 59,
-    LIVE = 60,
-    TWITCH_POINTS = 61,
-    TWITCH_EXTENSIONS = 62,
-    PULSE_RATE_MAX = 63,
-    PULSE_RATE_MIN = 64,
-    PULSE_CALORIES_MAX = 65,
-    PULSE_CALORIES_MIN = 66,
-    ALERTS = 67,
-    ALERTS_TWITCH = 68,
-    ALERTS_TWITCH_FOLLOWERS = 69,
-    ALERTS_TWITCH_SUBSCRIBERS = 70,
-    ALERTS_TWITCH_BITS = 71,
-    ALERTS_TWITCH_HOSTS = 72,
-    ALERTS_TWITCH_RAIDS = 73,
-    ALERTS_YOUTUBE = 74,
-    ALERTS_YOUTUBE_SUBSCRIBERS = 75,
-    ALERTS_YOUTUBE_MEMBERS = 76,
-    ALERTS_YOUTUBE_SUPERCHATS = 77,
-    ALERTS_YOUTUBE_SUPERSTICKERS = 78,
-    ALERTS_FACEBOOK = 79,
-    ALERTS_FACEBOOK_FOLLOWERS = 80,
-    ALERTS_FACEBOOK_REACTIONS = 81,
-    ALERTS_FACEBOOK_STARS = 82,
-    ALERTS_FACEBOOK_SUPPORTS = 83,
-    ALERTS_FACEBOOK_SHARES = 84,
-    ALERTS_FACEBOOK_FANS = 85,
-    ALERTS_GLIMESH = 86,
-    ALERTS_GLIMESH_FOLLOWERS = 87,
-    ALERTS_GLIMESH_SUBSCRIBERS = 88,
-    ALERTS_STREAMLABS = 89,
-    ALERTS_STREAMLABS_DONATIONS = 90,
-    ALERTS_STREAMLABS_CHARITY = 91,
-    ALERTS_STREAMLABS_MERCH = 92,
-    ALERTS_STREAMLABS_REDEMPTIONS = 93,
-    ALERTS_STREAMLABS_PRIMEGIFTS = 94,
-    ALERTS_STREAMELEMENTS = 95,
-    ALERTS_STREAMELEMENTS_DONATIONS = 96,
-    ALERTS_STREAMELEMENTS_MERCH = 97,
-    ALERTS_STREAMELEMENTS_REDEMPTIONS = 98,
-    ALERTS_EXTRALIFE_DONATIONS = 99,
-    ALERTS_DONORDRIVE_DONATIONS = 100,
-    ALERTS_PAYPAL_PAYMENTCOMPLETE = 101,
-    ALERTS_PAYPAL_PAYMENTDENIED = 102,
-    ALERTS_TIPEEESTREAM_DONATIONS = 103,
-    ALERTS_TILTIFY_CAMPAIGNDONATIONS = 104,
-    ALERTS_PATREON_CAMPAIGNPLEDGES = 105,
-    ALERTS_TREATSTREAM_TREATS = 106,
-    ALERTS_OBS = 107,
-    ALERTS_SLOBS = 108,
-    ALERTS_PULSE_RATE = 109,
-    ALERTS_PULSE_CALORIES = 110
+enum class LumiaSdkEventTypes
+{
+    STATES = 47,
+    CHAT = 48,
+    COMMAND = 49,
+    TWITCH_POINTS = 50,
+    TWITCH_EXTENSIONS = 51,
+    TROVO_SPELL = 52,
+    PULSE = 53,
+    ALERT = 54,
 };
 
-enum class Platforms {
+enum class Platforms
+{
     TWITCH = 111,
     YOUTUBE = 112,
     FACEBOOK = 113,
@@ -145,8 +86,8 @@ enum class Platforms {
     GLIMESH = 115
 };
 
-
-enum class LightBrands {
+enum class LightBrands
+{
     HUE = 116,
     NANOLEAF = 117,
     NANOLEAF2 = 118,
@@ -170,8 +111,8 @@ enum class LightBrands {
     ELGATO = 136
 };
 
-
-enum class EventOrigins {
+enum class EventOrigins
+{
     LUMIA = 137,
     TWITCH = 138,
     YOUTUBE = 139,
@@ -194,191 +135,195 @@ enum class EventOrigins {
 };
 
 template <class T>
-static const std::string getTypeValue(T value) {
+static const std::string getTypeValue(T value)
+{
     return types_values[static_cast<int>(value)];
 };
 
-
 template <class T>
-static const T getTypeValueFromString(std::string value) {
-    return static_cast<T>(types_values_str[value]);  
-  
+static const T getTypeValueFromString(std::string value)
+{
+    return static_cast<T>(types_values_str[value]);
 };
 
-struct RGB {
+struct RGB
+{
     std::optional<int> r;
     std::optional<int> g;
     std::optional<int> b;
 };
 
-
-struct ExtraSetting {
-    std::optional <std::string> username;
-    std::optional <int> bits;
+struct ExtraSetting
+{
+    std::optional<std::string> username;
+    std::optional<int> bits;
 };
 
-
-struct ILumiaSdkEventData {
-    std::optional <std::string> username;
-    std::optional <std::string> command;
+struct ILumiaSdkEventData
+{
+    std::optional<std::string> username;
+    std::optional<std::string> command;
 };
 
-
-struct ILumiaSdkEvent {
+struct ILumiaSdkEvent
+{
     EventOrigins origin;
     LumiaSdkEventTypes type;
     ILumiaSdkEventData data;
 };
 
-
-
-struct ILumiaSdkLight {
+struct ILumiaSdkLight
+{
     LightBrands type;
-    std::variant <std::string, int> id;
+    std::variant<std::string, int> id;
 };
 
+struct LumiaSDKPackParams
+{
 
-struct LumiaSDKPackParams {
+    std::variant<std::string, RGB> value;
+    std::optional<std::vector<ILumiaSdkLight>> lights;
+    std::optional<bool> hold;      // Sets this command to default or not
+    std::optional<bool> skipQueue; // Skips the queue and instantly turns to this color
 
-    std::variant <std::string, RGB>  value;
-    std::optional <std::vector<ILumiaSdkLight>> lights;
-    std::optional <bool> hold ; // Sets this command to default or not
-    std::optional <bool> skipQueue ; // Skips the queue and instantly turns to this color
-
-    std::optional <Platforms> platform ;
+    std::optional<Platforms> platform;
 
     // Used for TTS
-    std::optional <std::string> voice ;
-    std::optional <int> volume ;
+    std::optional<std::string> voice;
+    std::optional<int> volume;
 
     // Mainly used for RGB color and Hex color types
-    std::optional <int> brightness ;
-    std::optional <int> transition;
-    std::optional <int> duration ;
+    std::optional<int> brightness;
+    std::optional<int> transition;
+    std::optional<int> duration;
 
-    std::optional <ExtraSetting> extraSettings; // Mainly used to pass in variables for things like TTS or Chat bot
-    
+    std::optional<ExtraSetting> extraSettings; // Mainly used to pass in variables for things like TTS or Chat bot
 };
-class ILumiaSdkSendPack {
+class ILumiaSdkSendPack
+{
 public:
     LumiaSDKCommandTypes type;
     LumiaSDKPackParams params;
 
-    json toJSONobj() const {
+    json toJSONobj() const
+    {
         json j;
         j["type"] = getTypeValue(type);
-        
+
         j["params"] = {};
 
-        auto* vpt = std::get_if<std::string>(&params.value);
-        if (vpt != nullptr) {
+        auto *vpt = std::get_if<std::string>(&params.value);
+        if (vpt != nullptr)
+        {
             j["params"]["value"] = *vpt;
         }
-        else {
+        else
+        {
 
             j["params"]["value"] = {};
-            const RGB& rgb = std::get<RGB>(params.value);
+            const RGB &rgb = std::get<RGB>(params.value);
 
-            if (rgb.r != std::nullopt) {
+            if (rgb.r != std::nullopt)
+            {
                 j["params"]["value"]["r"] = rgb.r.value();
-            } 
-            if (rgb.g != std::nullopt) {
+            }
+            if (rgb.g != std::nullopt)
+            {
                 j["params"]["value"]["g"] = rgb.g.value();
             }
 
-            if (rgb.b != std::nullopt) {
+            if (rgb.b != std::nullopt)
+            {
                 j["params"]["value"]["b"] = rgb.b.value();
             }
-            
         }
 
-        if (params.lights) {
+        if (params.lights)
+        {
             j["params"]["lights"] = json::array();
             int i = 0;
-            for (const ILumiaSdkLight& light: params.lights.value()) {
-                auto* idpt = std::get_if<int>(&light.id);
-                if (idpt != nullptr) {
+            for (const ILumiaSdkLight &light : params.lights.value())
+            {
+                auto *idpt = std::get_if<int>(&light.id);
+                if (idpt != nullptr)
+                {
                     j["params"]["lights"][i++] = {
-                        { "type" , light.type },
-                        { "id" , std::get<int>(light.id) }
-                    };
+                        {"type", light.type},
+                        {"id", std::get<int>(light.id)}};
                 }
-                else {
+                else
+                {
                     j["params"]["lights"][i++] = {
-                        { "type" , light.type },
-                        { "id" , std::get<std::string>(light.id) }
-                    };
+                        {"type", light.type},
+                        {"id", std::get<std::string>(light.id)}};
                 }
-                
-
-
             }
-            
         }
 
-        if (params.hold) {
+        if (params.hold)
+        {
             j["params"]["hold"] = params.hold.value();
         }
 
-        if (params.skipQueue) {
+        if (params.skipQueue)
+        {
             j["params"]["skipQueue"] = params.skipQueue.value();
         }
 
-        if (params.platform) {
+        if (params.platform)
+        {
             j["params"]["platform"] = getTypeValue(params.platform.value());
         }
 
-        if (params.voice) {
+        if (params.voice)
+        {
             j["params"]["voice"] = params.voice.value();
         }
 
-        if (params.volume) {
+        if (params.volume)
+        {
             j["params"]["volume"] = params.volume.value();
         }
 
-        if (params.brightness) {
+        if (params.brightness)
+        {
             j["params"]["brtightness"] = params.brightness.value();
         }
 
-        if (params.transition) {
+        if (params.transition)
+        {
             j["params"]["transition"] = params.transition.value();
         }
 
-        if (params.duration) {
+        if (params.duration)
+        {
             j["params"]["duration"] = params.duration.value();
         }
 
-        if (params.duration) {
+        if (params.duration)
+        {
             j["params"]["duration"] = params.duration.value();
         }
 
-        if (params.extraSettings) {
+        if (params.extraSettings)
+        {
             j["params"]["extraSettings"] = {};
-            if (params.extraSettings.value().username) {
+            if (params.extraSettings.value().username)
+            {
                 j["params"]["extraSettings"]["username"] = params.extraSettings.value().username.value();
             }
-            
-            if (params.extraSettings.value().bits) {
+
+            if (params.extraSettings.value().bits)
+            {
                 j["params"]["extraSettings"]["bits"] = params.extraSettings.value().bits.value();
             }
-            
         }
 
-
         return j;
-
-
     };
 
-    std::string stringify() {
+    std::string stringify()
+    {
         return toJSONobj().dump();
     };
 };
-
-
-
-
-
-
-
-

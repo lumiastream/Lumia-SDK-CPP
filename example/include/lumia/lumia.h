@@ -66,7 +66,8 @@ public:
 	{
 
 		json o = {};
-		o["method"] = "sdk:getinfo";
+		o["method"] = "retrieve";
+		o["retrieve"] = true;
 		sendWsMessage(o, cb);
 	};
 
@@ -102,14 +103,14 @@ public:
 
 	// Sends a color pack
 	void sendColor(
-		const RGB &color,
-		const std::optional<int> &brightness = std::nullopt, // 0-100
-		const std::optional<int> &duration = std::nullopt,	 // In milliseconds
-		const std::optional<int> &transition = std::nullopt, // In milliseconds
-		const std::optional<bool> &default_ = std::nullopt,
-		const std::optional<bool> &skipQueue = std::nullopt,
-		const std::optional<std::vector<ILumiaSdkLight> > &lights = std::nullopt,
-		const callback &cb = nullptr)
+			const RGB &color,
+			const std::optional<int> &brightness = std::nullopt, // 0-100
+			const std::optional<int> &duration = std::nullopt,	 // In milliseconds
+			const std::optional<int> &transition = std::nullopt, // In milliseconds
+			const std::optional<bool> &default_ = std::nullopt,
+			const std::optional<bool> &skipQueue = std::nullopt,
+			const std::optional<std::vector<ILumiaSdkLight>> &lights = std::nullopt,
+			const callback &cb = nullptr)
 	{
 
 		ILumiaSdkSendPack pack;
@@ -160,7 +161,7 @@ public:
 	{
 
 		json o = {};
-		o["method"] = "sdk:stop";
+		o["method"] = "stop";
 		sendWsMessage(o, [&](json j) {});
 		stoped = true;
 		this->endpoint_->stop();
@@ -229,6 +230,8 @@ private:
 				auto cb = cbs.find(*context);
 				if (cb != cbs.end())
 				{
+					// j.erase("context");
+					// j.erase("event");
 					cb->second(j);
 				};
 				return;

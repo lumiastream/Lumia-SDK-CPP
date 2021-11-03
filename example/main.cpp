@@ -2,76 +2,85 @@
 
 int main()
 {
-
 	std::string token = "token";
 	std::string appName = "lumia-test-sdk";
 	Lumia lumia = Lumia();
 	ILumiaSdkSendPack pack;
+
 	lumia.init([&]()
-			   {
-				   std::cout << "inited" << std::endl;
+						 {
+							 std::cout << "inited" << std::endl;
 
-				   // set callback for all events ; not using an event library
-				   lumia.eventcb = [&](const std::string &eventName, std::variant<std::string, json> &data_)
-				   {
-					   std::cout << "Event Name: " << eventName << std::endl;
+							 //  auto info = lumia.getInfo();
+							 //  std::cout << "info" << info << std::endl;
 
-					   auto *dataptr = std::get_if<json>(&data_);
+							 // set callback for all events ; not using an event library
+							 lumia.eventcb = [&](const std::string &eventName, std::variant<std::string, json> &data_)
+							 {
+								 std::cout << "Event Name: " << eventName << std::endl;
 
-					   if (dataptr != nullptr)
-					   {
+								 auto *dataptr = std::get_if<json>(&data_);
 
-						   auto &data = *dataptr;
+								 if (dataptr != nullptr)
+								 {
 
-						   std::cout << "Event data: " << data.dump();
+									 auto &data = *dataptr;
 
-						   switch (getTypeValueFromString<LumiaSdkEventTypes>(data["type"]))
-						   {
-						   case LumiaSdkEventTypes::CHAT_COMMANDS:
-							   std::cout << "Chat Command is being triggered: " << data.dump() << std::endl;
-							   break;
+									 std::cout << "Event data: " << data.dump();
 
-						   case LumiaSdkEventTypes::CHAT_TWITCH:
-						   {
-							   std::cout << "New chat message from twitch: " << data.dump() << std::endl;
-							   break;
-						   }
-						   }
-					   }
-					   else
-					   {
-						   std::string data = std::get<std::string>(data_);
-						   std::cout << "Event data: " << data;
-					   }
-				   };
+									 switch (getTypeValueFromString<LumiaSdkEventTypes>(data["type"]))
+									 {
+									 case LumiaSdkEventTypes::STATES:
+										 std::cout << "States have been updated: " << data.dump() << std::endl;
+										 break;
 
-				   // Sending an alert event example
-				   lumia.sendAlert(LumiaSDKAlertValues::TWITCH_FOLLOWER);
+									 case LumiaSdkEventTypes::COMMAND:
+										 std::cout << "A Chat Command is being triggered: " << data.dump() << std::endl;
+										 break;
 
-				   // Sending a command; with a callback to get the result for this call
-				   lumia.sendCommand("red", {}, {}, [&](json &res)
-									 { std::cout << res.dump() << std::endl; });
+									 case LumiaSdkEventTypes::CHAT:
+										 std::cout << "New chat message: " << data.dump() << std::endl;
+										 break;
 
-				   lumia.sendColor({255, 0, 255}, 60, 1000);
+									 case LumiaSdkEventTypes::ALERT:
+										 std::cout << "New alert: " << data.dump() << std::endl;
+										 break;
+									 }
+								 }
+								 else
+								 {
+									 std::string data = std::get<std::string>(data_);
+									 std::cout << "Event data: " << data;
+								 }
+							 };
 
-				   // Sending a brightness
-				   lumia.sendBrightness(100);
+							 // Sending an alert event example
+							 lumia.sendAlert(LumiaSDKAlertValues::TWITCH_FOLLOWER);
 
-				   // Sending a TTS message
-				   lumia.sendTts("This SDK is the best");
+							 // Sending a command; with a callback to get the result for this call
+							 lumia.sendCommand("red", {}, {}, [&](json &res)
+																 { std::cout << res.dump() << std::endl; });
 
-				   // Sending a Chat bot message
-				   lumia.sendChatbot(Platforms::TWITCH, "This SDK is the best");
+							 lumia.sendColor({255, 0, 255}, 60, 1000);
 
-				   // Sending a raw event example
-				   pack = ILumiaSdkSendPack();
-				   pack.type = LumiaSDKCommandTypes::ALERT;
-				   pack.params.value = getTypeValue(LumiaSDKAlertValues::TWITCH_FOLLOWER);
-				   lumia.send(pack);
+							 // Sending a brightness
+							 lumia.sendBrightness(100);
 
-				   //lumia.stop();
-			   },
-			   token, appName, host);
+							 // Sending a TTS message
+							 lumia.sendTts("This SDK is the best");
+
+							 // Sending a Chat bot message
+							 lumia.sendChatbot(Platforms::TWITCH, "This SDK is the best");
+
+							 // Sending a raw event example
+							 pack = ILumiaSdkSendPack();
+							 pack.type = LumiaSDKCommandTypes::ALERT;
+							 pack.params.value = getTypeValue(LumiaSDKAlertValues::TWITCH_FOLLOWER);
+							 lumia.send(pack);
+
+							 //lumia.stop();
+						 },
+						 token, appName);
 
 	return 0;
 }
