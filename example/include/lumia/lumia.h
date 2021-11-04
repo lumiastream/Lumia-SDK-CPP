@@ -191,7 +191,7 @@ private:
 
 		if (cb)
 		{
-			cbs[++eventCount] = cb;
+			cbs[std::to_string(++eventCount)] = cb;
 			o["context"] = std::to_string(eventCount);
 		}
 
@@ -237,6 +237,8 @@ private:
 	void message(const std::string& payload)
 	{
 
+		std::cout << payload;
+
 		try
 		{
 			json j = json::parse(payload);
@@ -260,6 +262,7 @@ private:
 		}
 		catch (std::exception& e)
 		{
+			std::cout << e.what(); 
 			std::variant<std::string, json> data;
 			data.emplace<std::string>(e.what());
 			if (eventcb)
@@ -269,7 +272,7 @@ private:
 
 	int eventCount = 0;
 
-	std::map<int, callback> cbs;
+	std::map<std::string, callback> cbs;
 
 	bool stoped = true;
 
