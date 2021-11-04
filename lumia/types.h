@@ -182,7 +182,7 @@ struct LumiaSDKPackParams
 {
 
     std::variant<std::string, RGB> value;
-    std::optional<std::vector<ILumiaSdkLight>> lights;
+    std::optional<std::vector<ILumiaSdkLight> > lights;
     std::optional<bool> hold;      // Sets this command to default or not
     std::optional<bool> skipQueue; // Skips the queue and instantly turns to this color
 

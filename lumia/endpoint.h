@@ -13,32 +13,31 @@
 #include <websocketpp/config/asio_no_tls_client.hpp>
 #include <websocketpp/client.hpp>
 
-
 typedef websocketpp::client<websocketpp::config::asio_client> client;
 
+using websocketpp::lib::bind;
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
-using websocketpp::lib::bind;
+using websocketpp::lib::placeholders::_3;
 
 // pull out the type of messages sent by our config
 typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 //typedef websocketpp::lib::shared_ptr<boost::asio::ssl::context> context_ptr;
 typedef client::connection_ptr connection_ptr;
 
-
-
 /*
 
 Low level ws client implementation ; 
 it forward all events to lumia
 */
-class Endpoint {
+class Endpoint
+{
 
 public:
-    
     typedef Endpoint type;
 
-    Endpoint() {
+    Endpoint()
+    {
         m_endpoint.set_access_channels(websocketpp::log::alevel::none);
         m_endpoint.set_error_channels(websocketpp::log::elevel::none);
 
@@ -46,7 +45,7 @@ public:
         m_endpoint.init_asio();
 
         // Register our handlers
-       // m_endpoint.set_socket_init_handler(bind(&type::on_socket_init, this, ::_1));
+        // m_endpoint.set_socket_init_handler(bind(&type::on_socket_init, this, ::_1));
         //m_endpoint.set_tls_init_handler(bind(&type::on_tls_init,this,::_1));
         m_endpoint.set_message_handler(bind(&type::on_message, this, ::_1, ::_2));
         m_endpoint.set_open_handler(bind(&type::on_open, this, ::_1));
@@ -54,21 +53,24 @@ public:
         m_endpoint.set_fail_handler(bind(&type::on_fail, this, ::_1));
     }
 
-    void setCB( std::function<void()> o, std::function<void()> c, std::function<void(const std::string&)> m, std::function<void(const std::string&)> f) {
+    void setCB(std::function<void()> o, std::function<void(int, int)> c, std::function<void(const std::string &)> m, std::function<void(const std::string &, int, int)> f)
+    {
         o_ = o;
         c_ = c;
         m_ = m;
         f_ = f;
     }
 
-    int start(std::string uri) {
-       websocketpp::lib::error_code ec;
-       client::connection_ptr con = m_endpoint.get_connection(uri, ec);
+    int start(std::string uri)
+    {
+        websocketpp::lib::error_code ec;
+        client::connection_ptr con = m_endpoint.get_connection(uri, ec);
 
-       if (ec) {
+        if (ec)
+        {
             m_endpoint.get_alog().write(websocketpp::log::alevel::app, ec.message());
             return 1;
-       }
+        }
 
         //con->set_proxy("http://humupdates.uchicago.edu:8443");
 
@@ -82,12 +84,13 @@ public:
         return 0;
     }
 
-    void stop() {
+    void stop()
+    {
         m_endpoint.close(hdl_, websocketpp::close::status::going_away, "");
     }
 
-    void on_socket_init(websocketpp::connection_hdl) {
-        
+    void on_socket_init(websocketpp::connection_hdl)
+    {
     }
 
     /*
@@ -108,9 +111,11 @@ public:
     }
     */
 
-    void on_fail(websocketpp::connection_hdl hdl) {
+    void on_fail(websocketpp::connection_hdl hdl)
+    {
         client::connection_ptr con = m_endpoint.get_con_from_hdl(hdl);
         int code = con->get_local_close_code();
+        int code_r = con->get_remote_close_code();
         std::cout << "Fail handler" << std::endl;
         std::cout << con->get_state() << std::endl;
         std::cout << con->get_local_close_code() << std::endl;
@@ -118,38 +123,42 @@ public:
         std::cout << con->get_remote_close_code() << std::endl;
         std::cout << con->get_remote_close_reason() << std::endl;
         std::cout << con->get_ec() << " - " << con->get_ec().message() << std::endl;
-        if ( code == 1000 || code == 1001 || code == 1005 ) {
-            f_("closed by us");
+        if (code == 1000 || code == 1001 || code == 1005)
+        {
+            f_("closed by us", code, code_r);
         }
-        else {
-            f_(con->get_local_close_reason());
+        else
+        {
+            f_(con->get_local_close_reason(), code, code_r);
         }
-        
     }
 
-    void on_open(websocketpp::connection_hdl hdl) {
+    void on_open(websocketpp::connection_hdl hdl)
+    {
         hdl_ = hdl;
         o_();
-       
     }
-    void on_message(websocketpp::connection_hdl hdl, message_ptr msg) {
+    void on_message(websocketpp::connection_hdl hdl, message_ptr msg)
+    {
         m_(msg->get_payload());
     }
-    void on_close(websocketpp::connection_hdl) {
-        c_();
+    void on_close(websocketpp::connection_hdl hdl)
+    {
+        client::connection_ptr con = m_endpoint.get_con_from_hdl(hdl);
+        c_(con->get_local_close_code(), con->get_remote_close_code());
     }
 
-    void sendText(std::string& text) {
-        m_endpoint.send(hdl_,text, websocketpp::frame::opcode::text);
+    void sendText(std::string &text)
+    {
+        m_endpoint.send(hdl_, text, websocketpp::frame::opcode::text);
     }
 
 private:
     client m_endpoint;
     websocketpp::connection_hdl hdl_;
     std::function<void()> o_;
-    std::function<void()> c_;
-    std::function<void(const std::string&)> m_;
-    std::function<void(const std::string&)> f_;
+    std::function<void(int, int)> c_;
+    std::function<void(const std::string &)> m_;
+    std::function<void(const std::string &, int, int)> f_;
     bool stoped_ = true;
-
 };

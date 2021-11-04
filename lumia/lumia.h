@@ -7,6 +7,8 @@
 #include "types.h"
 #include <functional>
 #include <memory>
+#include <chrono>
+#include <thread>
 
 typedef std::function<void(json &)> callback;
 
@@ -55,16 +57,20 @@ public:
 		stoped = false;
 		while (!stoped)
 		{
-
+			isConnected = false;
 			endpoint_ = std::make_unique<Endpoint>();
-			endpoint_->setCB(cb, std::bind(&type::close, this), std::bind(&type::message, this, _1), std::bind(&type::fail, this, _1));
+			endpoint_->setCB(cb, std::bind(&type::close, this, _1, _2), std::bind(&type::message, this, _1), std::bind(&type::fail, this, _1, _2, _3));
 			endpoint_->start(host_ + "/api?token=" + token_ + "&name=" + name_);
+
+			if (delay_)
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+			}
 		}
 	};
 
 	void getInfo(const callback &cb = nullptr)
 	{
-
 		json o = {};
 		o["method"] = "retrieve";
 		o["retrieve"] = true;
@@ -109,7 +115,7 @@ public:
 			const std::optional<int> &transition = std::nullopt, // In milliseconds
 			const std::optional<bool> &default_ = std::nullopt,
 			const std::optional<bool> &skipQueue = std::nullopt,
-			const std::optional<std::vector<ILumiaSdkLight>> &lights = std::nullopt,
+			const std::optional<std::vector<ILumiaSdkLight> > &lights = std::nullopt,
 			const callback &cb = nullptr)
 	{
 
@@ -184,7 +190,7 @@ private:
 
 		if (cb)
 		{
-			cbs[++eventCount] = cb;
+			cbs[std::to_string(++eventCount)] = cb;
 			o["context"] = std::to_string(eventCount);
 		}
 
@@ -195,22 +201,36 @@ private:
 
 	void open()
 	{
+		isConnected = true;
 		std::variant<std::string, json> data;
 		data.emplace<std::string>("");
 		if (eventcb)
 			eventcb("connected", data);
 	}
 
-	void close()
+	void close(int code, int coder)
 	{
+
 		std::variant<std::string, json> data;
 		data.emplace<std::string>("");
 		if (eventcb)
 			eventcb("closed", data);
 	}
 
-	void fail(const std::string &msg)
+	void fail(const std::string &msg, int code, int coder)
 	{
+		if (msg == "Invalid HTTP status.")
+		{
+			stoped = true;
+		}
+		else
+		{
+			if (coder == 1006 || code == 1006)
+			{
+				delay_ = true;
+			}
+		}
+
 		std::variant<std::string, json> data;
 		data.emplace<std::string>(msg);
 		if (eventcb)
@@ -219,6 +239,8 @@ private:
 
 	void message(const std::string &payload)
 	{
+
+		std::cout << payload;
 
 		try
 		{
@@ -230,8 +252,8 @@ private:
 				auto cb = cbs.find(*context);
 				if (cb != cbs.end())
 				{
-					// j.erase("context");
-					// j.erase("event");
+					//j.erase("context");
+					//j.erase("event");
 					cb->second(j);
 				};
 				return;
@@ -243,6 +265,7 @@ private:
 		}
 		catch (std::exception &e)
 		{
+			std::cout << e.what();
 			std::variant<std::string, json> data;
 			data.emplace<std::string>(e.what());
 			if (eventcb)
@@ -252,7 +275,11 @@ private:
 
 	int eventCount = 0;
 
-	std::map<int, callback> cbs;
+	std::map<std::string, callback> cbs;
 
 	bool stoped = true;
+
+	bool delay_ = false;
+
+	bool isConnected = false;
 };
