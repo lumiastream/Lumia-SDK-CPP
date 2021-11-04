@@ -18,6 +18,7 @@ typedef websocketpp::client<websocketpp::config::asio_client> client;
 
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
+using websocketpp::lib::placeholders::_3;
 using websocketpp::lib::bind;
 
 // pull out the type of messages sent by our config
@@ -54,7 +55,7 @@ public:
         m_endpoint.set_fail_handler(bind(&type::on_fail, this, ::_1));
     }
 
-    void setCB( std::function<void()> o, std::function<void()> c, std::function<void(const std::string&)> m, std::function<void(const std::string&)> f) {
+    void setCB( std::function<void()> o, std::function<void(int, int)> c, std::function<void(const std::string&)> m, std::function<void(const std::string&, int, int)> f) {
         o_ = o;
         c_ = c;
         m_ = m;
@@ -111,6 +112,7 @@ public:
     void on_fail(websocketpp::connection_hdl hdl) {
         client::connection_ptr con = m_endpoint.get_con_from_hdl(hdl);
         int code = con->get_local_close_code();
+        int code_r = con->get_remote_close_code();
         std::cout << "Fail handler" << std::endl;
         std::cout << con->get_state() << std::endl;
         std::cout << con->get_local_close_code() << std::endl;
@@ -119,10 +121,10 @@ public:
         std::cout << con->get_remote_close_reason() << std::endl;
         std::cout << con->get_ec() << " - " << con->get_ec().message() << std::endl;
         if ( code == 1000 || code == 1001 || code == 1005 ) {
-            f_("closed by us");
+            f_("closed by us", code, code_r);
         }
         else {
-            f_(con->get_local_close_reason());
+            f_(con->get_local_close_reason(), code, code_r);
         }
         
     }
@@ -135,8 +137,9 @@ public:
     void on_message(websocketpp::connection_hdl hdl, message_ptr msg) {
         m_(msg->get_payload());
     }
-    void on_close(websocketpp::connection_hdl) {
-        c_();
+    void on_close(websocketpp::connection_hdl hdl) {
+        client::connection_ptr con = m_endpoint.get_con_from_hdl(hdl);
+        c_(con->get_local_close_code() , con->get_remote_close_code());
     }
 
     void sendText(std::string& text) {
@@ -147,9 +150,9 @@ private:
     client m_endpoint;
     websocketpp::connection_hdl hdl_;
     std::function<void()> o_;
-    std::function<void()> c_;
+    std::function<void(int, int)> c_;
     std::function<void(const std::string&)> m_;
-    std::function<void(const std::string&)> f_;
+    std::function<void(const std::string&, int, int)> f_;
     bool stoped_ = true;
 
 };
