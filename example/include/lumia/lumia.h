@@ -7,8 +7,11 @@
 #include "types.h"
 #include <functional>
 #include <memory>
+#include <chrono>
+#include <thread>
 
-typedef std::function<void(json &)> callback;
+
+typedef std::function<void(json&)> callback;
 
 class Lumia
 {
@@ -35,7 +38,7 @@ public:
 		}
 	}
 
-	void init(const std::function<void()> &cb, const std::optional<std::string> &token = {}, const std::optional<std::string> &name = {}, const std::optional<std::string> &host = {})
+	void init(const std::function<void()>& cb, const std::optional<std::string>& token = {}, const std::optional<std::string>& name = {}, const std::optional<std::string>& host = {})
 	{
 
 		if (token)
@@ -57,12 +60,17 @@ public:
 		{
 
 			endpoint_ = std::make_unique<Endpoint>();
-			endpoint_->setCB(cb, std::bind(&type::close, this), std::bind(&type::message, this, _1), std::bind(&type::fail, this, _1));
+			endpoint_->setCB(cb, std::bind(&type::close, this,_1,_2), std::bind(&type::message, this, _1), std::bind(&type::fail, this, _1,_2,_3));
 			endpoint_->start(host_ + "/api?token=" + token_ + "&name=" + name_);
+			
+			if (delay_) {
+				std::cout << "kjhjh" << std::endl;
+				std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+			}
 		}
 	};
 
-	void getInfo(const callback &cb = nullptr)
+	void getInfo(const callback& cb = nullptr)
 	{
 		json o = {};
 		o["method"] = "retrieve";
@@ -70,7 +78,7 @@ public:
 		sendWsMessage(o, cb);
 	};
 
-	void send(const ILumiaSdkSendPack &pack, const callback &cb = nullptr)
+	void send(const ILumiaSdkSendPack& pack, const callback& cb = nullptr)
 	{
 
 		json o = pack.toJSONobj();
@@ -79,7 +87,7 @@ public:
 		sendWsMessage(o, cb);
 	}
 
-	void sendAlert(const LumiaSDKAlertValues &alert, const callback &cb = nullptr)
+	void sendAlert(const LumiaSDKAlertValues& alert, const callback& cb = nullptr)
 	{
 
 		ILumiaSdkSendPack pack;
@@ -89,7 +97,7 @@ public:
 	}
 
 	// Sends command
-	void sendCommand(const std::string &command, const std::optional<bool> &default_ = std::nullopt, const std::optional<bool> &skipQueue = std::nullopt, const callback &cb = nullptr)
+	void sendCommand(const std::string& command, const std::optional<bool>& default_ = std::nullopt, const std::optional<bool>& skipQueue = std::nullopt, const callback& cb = nullptr)
 	{
 
 		ILumiaSdkSendPack pack;
@@ -102,14 +110,14 @@ public:
 
 	// Sends a color pack
 	void sendColor(
-			const RGB &color,
-			const std::optional<int> &brightness = std::nullopt, // 0-100
-			const std::optional<int> &duration = std::nullopt,	 // In milliseconds
-			const std::optional<int> &transition = std::nullopt, // In milliseconds
-			const std::optional<bool> &default_ = std::nullopt,
-			const std::optional<bool> &skipQueue = std::nullopt,
-			const std::optional<std::vector<ILumiaSdkLight>> &lights = std::nullopt,
-			const callback &cb = nullptr)
+		const RGB& color,
+		const std::optional<int>& brightness = std::nullopt, // 0-100
+		const std::optional<int>& duration = std::nullopt,	 // In milliseconds
+		const std::optional<int>& transition = std::nullopt, // In milliseconds
+		const std::optional<bool>& default_ = std::nullopt,
+		const std::optional<bool>& skipQueue = std::nullopt,
+		const std::optional<std::vector<ILumiaSdkLight>>& lights = std::nullopt,
+		const callback& cb = nullptr)
 	{
 
 		ILumiaSdkSendPack pack;
@@ -124,7 +132,7 @@ public:
 	};
 
 	// Sends brightness only
-	void sendBrightness(const int &brightness, const std::optional<int> &transition = std::nullopt, const std::optional<bool> &skipQueue = std::nullopt, const callback &cb = nullptr)
+	void sendBrightness(const int& brightness, const std::optional<int>& transition = std::nullopt, const std::optional<bool>& skipQueue = std::nullopt, const callback& cb = nullptr)
 	{
 
 		ILumiaSdkSendPack pack;
@@ -136,7 +144,7 @@ public:
 	};
 
 	// Sends tts
-	void sendTts(const std::string &text, const std::optional<int> volume = std::nullopt, const std::optional<std::string> &voice = std::nullopt, const callback &cb = nullptr)
+	void sendTts(const std::string& text, const std::optional<int> volume = std::nullopt, const std::optional<std::string>& voice = std::nullopt, const callback& cb = nullptr)
 	{
 		ILumiaSdkSendPack pack;
 		pack.type = LumiaSDKCommandTypes::TTS;
@@ -147,7 +155,7 @@ public:
 	};
 
 	// Sends Chatbot message
-	void sendChatbot(const Platforms &platform, const std::string &text, const callback &cb = nullptr)
+	void sendChatbot(const Platforms& platform, const std::string& text, const callback& cb = nullptr)
 	{
 		ILumiaSdkSendPack pack;
 		pack.type = LumiaSDKCommandTypes::CHATBOT_MESSAGE;
@@ -170,7 +178,7 @@ public:
 			eventcb("closed", data);
 	};
 
-	std::function<void(const std::string &, std::variant<std::string, json> &)> eventcb;
+	std::function<void(const std::string&, std::variant<std::string, json>&)> eventcb;
 
 private:
 	std::string token_;
@@ -178,7 +186,7 @@ private:
 	std::string host_ = "ws://127.0.0.1:39231";
 	std::unique_ptr<Endpoint> endpoint_;
 
-	void sendWsMessage(json &o, callback cb = nullptr)
+	void sendWsMessage(json& o, callback cb = nullptr)
 	{
 
 		if (cb)
@@ -200,23 +208,33 @@ private:
 			eventcb("connected", data);
 	}
 
-	void close()
+	void close(int code, int coder)
 	{
+		if ( coder == 1005 ) {
+			stoped = true;
+		}
 		std::variant<std::string, json> data;
 		data.emplace<std::string>("");
 		if (eventcb)
 			eventcb("closed", data);
 	}
 
-	void fail(const std::string &msg)
+	void fail(const std::string& msg, int code, int coder)
 	{
+		if (coder == 1006 || code == 1006) {
+			delay_ = true;
+		}
+
+		if (coder == 1005) {
+			stoped = true;
+		}
 		std::variant<std::string, json> data;
 		data.emplace<std::string>(msg);
 		if (eventcb)
 			eventcb("failed", data);
 	}
 
-	void message(const std::string &payload)
+	void message(const std::string& payload)
 	{
 
 		try
@@ -240,7 +258,7 @@ private:
 			if (eventcb)
 				eventcb("event", data);
 		}
-		catch (std::exception &e)
+		catch (std::exception& e)
 		{
 			std::variant<std::string, json> data;
 			data.emplace<std::string>(e.what());
@@ -254,4 +272,6 @@ private:
 	std::map<int, callback> cbs;
 
 	bool stoped = true;
+
+	bool delay_ = false;
 };
