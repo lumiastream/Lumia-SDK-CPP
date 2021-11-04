@@ -58,13 +58,12 @@ public:
 		stoped = false;
 		while (!stoped)
 		{
-
+			isConnected = false;
 			endpoint_ = std::make_unique<Endpoint>();
 			endpoint_->setCB(cb, std::bind(&type::close, this,_1,_2), std::bind(&type::message, this, _1), std::bind(&type::fail, this, _1,_2,_3));
 			endpoint_->start(host_ + "/api?token=" + token_ + "&name=" + name_);
 			
 			if (delay_) {
-				std::cout << "kjhjh" << std::endl;
 				std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 			}
 		}
@@ -202,6 +201,7 @@ private:
 
 	void open()
 	{
+		isConnected = true;
 		std::variant<std::string, json> data;
 		data.emplace<std::string>("");
 		if (eventcb)
@@ -210,9 +210,7 @@ private:
 
 	void close(int code, int coder)
 	{
-		if ( coder == 1005 ) {
-			stoped = true;
-		}
+	
 		std::variant<std::string, json> data;
 		data.emplace<std::string>("");
 		if (eventcb)
@@ -221,13 +219,15 @@ private:
 
 	void fail(const std::string& msg, int code, int coder)
 	{
-		if (coder == 1006 || code == 1006) {
-			delay_ = true;
-		}
-
-		if (coder == 1005) {
+		if (msg == "Invalid HTTP status.") {
 			stoped = true;
 		}
+		else {
+			if (coder == 1006 || code == 1006) {
+				delay_ = true;
+			}
+		}
+		
 		std::variant<std::string, json> data;
 		data.emplace<std::string>(msg);
 		if (eventcb)
@@ -249,8 +249,8 @@ private:
 				auto cb = cbs.find(*context);
 				if (cb != cbs.end())
 				{
-					// j.erase("context");
-					// j.erase("event");
+					//j.erase("context");
+					//j.erase("event");
 					cb->second(j);
 				};
 				return;
@@ -277,4 +277,6 @@ private:
 	bool stoped = true;
 
 	bool delay_ = false;
+
+	bool isConnected = false;
 };
