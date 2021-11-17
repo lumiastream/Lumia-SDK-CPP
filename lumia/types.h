@@ -7,6 +7,8 @@
 #include <vector>
 #include "json.hpp"
 #include "typesLookup.h"
+#include <stdexcept>
+
 
 // for convenience
 using json = nlohmann::json;
@@ -141,9 +143,37 @@ static const std::string getTypeValue(T value)
 };
 
 template <class T>
-static const T getTypeValueFromString(std::string value)
+static const T getTypeValueFromString(const std::string& value_type, const std::string& value)
 {
-    return static_cast<T>(types_values_str[value]);
+  
+    if (value_type == "LumiaSDKCommandTypes")
+    {
+        return static_cast<T>(types_values_str_LumiaSDKCommandTypes[value]);
+    }
+    else if (value_type == "LumiaSDKAlertValues")
+    {
+        return static_cast<T>(types_values_str_LumiaSDKAlertValues[value]);
+    }
+    else if (value_type == "LumiaSdkEventTypes")
+    {
+        return static_cast<T>(types_values_str_LumiaSdkEventTypes[value]);
+    }
+    else if (value_type == "Platforms")
+    {
+        return static_cast<T>(types_values_str_Platforms[value]);
+    }
+    else if (value_type == "LightBrands")
+    {
+        return static_cast<T>(types_values_str_LightBrands[value]);
+    }
+    else if (value_type == "EventOrigins")
+    {
+        return static_cast<T>(types_values_str_EventOrigins[value]);
+    }
+    else
+    {
+        throw std::runtime_error("Invalid vlaue");
+    }
 };
 
 struct RGB
@@ -182,7 +212,7 @@ struct LumiaSDKPackParams
 {
 
     std::variant<std::string, RGB> value;
-    std::optional<std::vector<ILumiaSdkLight> > lights;
+    std::optional<std::vector<ILumiaSdkLight>> lights;
     std::optional<bool> hold;      // Sets this command to default or not
     std::optional<bool> skipQueue; // Skips the queue and instantly turns to this color
 
@@ -212,7 +242,7 @@ public:
 
         j["params"] = {};
 
-        auto *vpt = std::get_if<std::string>(&params.value);
+        auto* vpt = std::get_if<std::string>(&params.value);
         if (vpt != nullptr)
         {
             j["params"]["value"] = *vpt;
@@ -221,7 +251,7 @@ public:
         {
 
             j["params"]["value"] = {};
-            const RGB &rgb = std::get<RGB>(params.value);
+            const RGB& rgb = std::get<RGB>(params.value);
 
             if (rgb.r != std::nullopt)
             {
@@ -242,20 +272,20 @@ public:
         {
             j["params"]["lights"] = json::array();
             int i = 0;
-            for (const ILumiaSdkLight &light : params.lights.value())
+            for (const ILumiaSdkLight& light : params.lights.value())
             {
-                auto *idpt = std::get_if<int>(&light.id);
+                auto* idpt = std::get_if<int>(&light.id);
                 if (idpt != nullptr)
                 {
                     j["params"]["lights"][i++] = {
                         {"type", light.type},
-                        {"id", std::get<int>(light.id)}};
+                        {"id", std::get<int>(light.id)} };
                 }
                 else
                 {
                     j["params"]["lights"][i++] = {
                         {"type", light.type},
-                        {"id", std::get<std::string>(light.id)}};
+                        {"id", std::get<std::string>(light.id)} };
                 }
             }
         }
