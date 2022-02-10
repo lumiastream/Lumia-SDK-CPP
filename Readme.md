@@ -8,31 +8,31 @@ Developers can use the Lumia Stream SDK to extend and control the Lumia Stream d
 
 <!-- toc -->
 
-- [The official Lumia Stream SDK for C++](#the-official-lumia-stream-sdk-for-c)
-  - [Table of Contents](#table-of-contents)
-- [Installation](#installation)
-- [Run the SDK](#run-the-sdk)
-- [Sample](#sample)
-- [Run a mock server](#run-a-mock-server)
-- [Events](#events)
-  - [States](#states)
-  - [Chat Command](#chat-command)
-  - [Chat](#chat)
-  - [Alert](#alert)
-- [Control](#control)
-  - [Get Settings](#get-settings)
-  - [Send Command](#send-command)
-  - [Send Color](#send-color)
-  - [Send Color to specific lights](#send-color-to-specific-lights)
-  - [Send Brightness](#send-brightness)
-  - [Send TTS](#send-tts)
-  - [Send Chat bot](#send-chat-bot)
-  - [Send Chat Command](#send-chat-command)
-  - [Send Chat](#send-chat)
-  - [Send Alert](#send-alert)
-  - [Resources](#resources)
-  - [Compiling from Terminal](#compiling-from-terminal)
-  - [Let's link](#lets-link)
+-   [The official Lumia Stream SDK for C++](#the-official-lumia-stream-sdk-for-c)
+    -   [Table of Contents](#table-of-contents)
+-   [Installation](#installation)
+-   [Run the SDK](#run-the-sdk)
+-   [Sample](#sample)
+-   [Run a mock server](#run-a-mock-server)
+-   [Events](#events)
+    -   [States](#states)
+    -   [Chat Command](#chat-command)
+    -   [Chat](#chat)
+    -   [Alert](#alert)
+-   [Control](#control)
+    -   [Get Settings](#get-settings)
+    -   [Send Command](#send-command)
+    -   [Send Color](#send-color)
+    -   [Send Color to specific lights](#send-color-to-specific-lights)
+    -   [Send Brightness](#send-brightness)
+    -   [Send TTS](#send-tts)
+    -   [Send Chat bot](#send-chat-bot)
+    -   [Send Chat Command](#send-chat-command)
+    -   [Send Chat](#send-chat)
+    -   [Send Alert](#send-alert)
+    -   [Resources](#resources)
+    -   [Compiling from Terminal](#compiling-from-terminal)
+    -   [Let's link](#lets-link)
 
 <!-- tocstop -->
 
@@ -67,9 +67,9 @@ This will first initialize the sdk to create the connection. Then it will listen
 The following snippet shows a valid sdk example
 
 ```js
-"use strict";
+'use strict';
 
-const { LumiaSdk, LumiaSDKCommandTypes, LumiaSDKAlertValues, LumiaSdkEventTypes } = require('@lumiastream/sdk');
+const { LumiaSdk, LumiaCommandTypes, LumiaAlertValues, LumiaEventTypes } = require('@lumiastream/sdk');
 
 const token = 'insert-token-here';
 const appName = 'lumia-test-sdk-js';
@@ -83,28 +83,28 @@ const appName = 'lumia-test-sdk-js';
         sdk.on('event', (data) => {
             console.log('Event data: ', data);
             switch (data.type) {
-                case LumiaSdkEventTypes.CHAT_COMMANDS: {
+                case LumiaEventTypes.CHAT_COMMANDS: {
                     console.log('Chat Command is being triggered', data);
                     break;
                 }
-                case LumiaSdkEventTypes.CHAT_TWITCH: {
+                case LumiaEventTypes.CHAT_TWITCH: {
                     console.log('New chat message from twitch', data);
                     break;
                 }
             }
         });
 
-    // Sending a command
-    await sdk.sendCommand({
-      command: 'red',
-    });
+        // Sending a command
+        await sdk.sendCommand({
+            command: 'red',
+        });
 
-    // Sending a basic color
-    await sdk.sendColor({
-      color: { r: 255, g: 0, b: 255 },
-      brightness: 60,
-      duration: 1000,
-    });
+        // Sending a basic color
+        await sdk.sendColor({
+            color: { r: 255, g: 0, b: 255 },
+            brightness: 60,
+            duration: 1000,
+        });
     } catch (err) {
         console.log('Init err: ', err);
     }
@@ -133,9 +133,9 @@ These events range from the app state being changed, raw chat messages, chat com
 
 An event message will contain at least the following base fields:
 
-- `type` _LumiaSdkEventTypes_: the type of event.
-- `origin` _EventOrigins (optional)_: where the event originated from. i.e: twitch for example
-- `data` _ILumiaSdkEventStateBody | ILumiaSdkEventChatCommandBody | ILumiaSdkEventChatBody | ILumiaSdkEventAlertBody | ILumiaSdkEventStateBody (optional)_: the body of the event
+-   `type` _LumiaEventTypes_: the type of event.
+-   `origin` _EventOrigins (optional)_: where the event originated from. i.e: twitch for example
+-   `data` _ILumiaEventStateBody | ILumiaEventChatCommandBody | ILumiaEventChatBody | ILumiaEventAlertBody | ILumiaEventStateBody (optional)_: the body of the event
 
 Additional fields may be present in the event message depending on the event type.
 
@@ -147,9 +147,9 @@ States indicate the current status the Lumia Stream is in
 
 ```json
 {
- "origin": null,
- "type": "states",
- "data": { "on": 1, "streamMode": 1, "fuze": 0 }
+    "origin": null,
+    "type": "states",
+    "data": { "on": 1, "streamMode": 1, "fuze": 0 }
 }
 ```
 
@@ -163,10 +163,10 @@ Lumia Stream has been prompted to trigger a command
 
 ```json
 {
-  "origin": "twitch",
-  "type": "command",
-  "data": { "username": "lumiastream", "command": "red" },
-  "raw": { "username": "lumiastream", "command": "red" }
+    "origin": "twitch",
+    "type": "command",
+    "data": { "username": "lumiastream", "command": "red" },
+    "raw": { "username": "lumiastream", "command": "red" }
 }
 ```
 
@@ -180,49 +180,49 @@ A raw chat message that has been sent
 
 ```json
 {
-  "type": "chat",
-  "data": {
-    "channel": "#lumiastream",
-    "message": "Wow",
-    "username": "lumiastream",
-    "userId": "163366031",
-    "userColor": "#8A2BE2",
-    "userColorRgb": "138,43,226",
-    "platform": "twitch",
-    "badgesRaw": "broadcaster/1,subscriber/0",
-    "hasEmotes": false,
-    "emotes": "",
-    "rawMessageWithoutEmotes": "Wow",
-    "emotesRaw": "",
-    "user": {
-      "badge-info": [],
-      "badges": [],
-      "client-nonce": "",
-      "color": "#8A2BE2",
-      "display-name": "lumiastream",
-      "emotes": null,
-      "first-msg": false,
-      "flags": null,
-      "id": "188ebc3d-e6e2-4b36-a125-0c4f0c0f54fd",
-      "mod": false,
-      "room-id": "163366031",
-      "subscriber": true,
-      "turbo": false,
-      "user-id": "163366031",
-      "user-type": null,
-      "emotes-raw": null,
-      "badge-info-raw": "subscriber/21",
-      "badges-raw": "broadcaster/1,subscriber/0",
-      "username": "lumiastream",
-      "message-type": "chat",
-      "isSelf": false,
-      "vip": false,
-      "tier3": true,
-      "tier2": true,
-      "tier1": true,
-      "follower": false
+    "type": "chat",
+    "data": {
+        "channel": "#lumiastream",
+        "message": "Wow",
+        "username": "lumiastream",
+        "userId": "163366031",
+        "userColor": "#8A2BE2",
+        "userColorRgb": "138,43,226",
+        "platform": "twitch",
+        "badgesRaw": "broadcaster/1,subscriber/0",
+        "hasEmotes": false,
+        "emotes": "",
+        "rawMessageWithoutEmotes": "Wow",
+        "emotesRaw": "",
+        "user": {
+            "badge-info": [],
+            "badges": [],
+            "client-nonce": "",
+            "color": "#8A2BE2",
+            "display-name": "lumiastream",
+            "emotes": null,
+            "first-msg": false,
+            "flags": null,
+            "id": "188ebc3d-e6e2-4b36-a125-0c4f0c0f54fd",
+            "mod": false,
+            "room-id": "163366031",
+            "subscriber": true,
+            "turbo": false,
+            "user-id": "163366031",
+            "user-type": null,
+            "emotes-raw": null,
+            "badge-info-raw": "subscriber/21",
+            "badges-raw": "broadcaster/1,subscriber/0",
+            "username": "lumiastream",
+            "message-type": "chat",
+            "isSelf": false,
+            "vip": false,
+            "tier3": true,
+            "tier2": true,
+            "tier1": true,
+            "follower": false
+        }
     }
-  }
 }
 ```
 
@@ -236,11 +236,11 @@ A raw alert has been sent
 
 ```json
 {
-  "origin": "twitch",
-  "type": "alert",
-  "event": "twitch-follower",
-  "data": { "userId": "12345", "username": "lumiastream" },
-  "raw": { "userId": "12345", "username": "lumiastream" }
+    "origin": "twitch",
+    "type": "alert",
+    "event": "twitch-follower",
+    "data": { "userId": "12345", "username": "lumiastream" },
+    "raw": { "userId": "12345", "username": "lumiastream" }
 }
 ```
 
@@ -361,10 +361,10 @@ Lumia Stream has been prompted to trigger a command
 
 ```json
 {
-  "origin": "twitch",
-  "type": "command",
-  "data": { "username": "lumiastream", "command": "red" },
-  "raw": { "username": "lumiastream", "command": "red" }
+    "origin": "twitch",
+    "type": "command",
+    "data": { "username": "lumiastream", "command": "red" },
+    "raw": { "username": "lumiastream", "command": "red" }
 }
 ```
 
@@ -378,49 +378,49 @@ A raw chat message that has been sent
 
 ```json
 {
-  "type": "chat",
-  "data": {
-    "channel": "#lumiastream",
-    "message": "Wow",
-    "username": "lumiastream",
-    "userId": "163366031",
-    "userColor": "#8A2BE2",
-    "userColorRgb": "138,43,226",
-    "platform": "twitch",
-    "badgesRaw": "broadcaster/1,subscriber/0",
-    "hasEmotes": false,
-    "emotes": "",
-    "rawMessageWithoutEmotes": "Wow",
-    "emotesRaw": "",
-    "user": {
-      "badge-info": [],
-      "badges": [],
-      "client-nonce": "",
-      "color": "#8A2BE2",
-      "display-name": "lumiastream",
-      "emotes": null,
-      "first-msg": false,
-      "flags": null,
-      "id": "188ebc3d-e6e2-4b36-a125-0c4f0c0f54fd",
-      "mod": false,
-      "room-id": "163366031",
-      "subscriber": true,
-      "turbo": false,
-      "user-id": "163366031",
-      "user-type": null,
-      "emotes-raw": null,
-      "badge-info-raw": "subscriber/21",
-      "badges-raw": "broadcaster/1,subscriber/0",
-      "username": "lumiastream",
-      "message-type": "chat",
-      "isSelf": false,
-      "vip": false,
-      "tier3": true,
-      "tier2": true,
-      "tier1": true,
-      "follower": false
+    "type": "chat",
+    "data": {
+        "channel": "#lumiastream",
+        "message": "Wow",
+        "username": "lumiastream",
+        "userId": "163366031",
+        "userColor": "#8A2BE2",
+        "userColorRgb": "138,43,226",
+        "platform": "twitch",
+        "badgesRaw": "broadcaster/1,subscriber/0",
+        "hasEmotes": false,
+        "emotes": "",
+        "rawMessageWithoutEmotes": "Wow",
+        "emotesRaw": "",
+        "user": {
+            "badge-info": [],
+            "badges": [],
+            "client-nonce": "",
+            "color": "#8A2BE2",
+            "display-name": "lumiastream",
+            "emotes": null,
+            "first-msg": false,
+            "flags": null,
+            "id": "188ebc3d-e6e2-4b36-a125-0c4f0c0f54fd",
+            "mod": false,
+            "room-id": "163366031",
+            "subscriber": true,
+            "turbo": false,
+            "user-id": "163366031",
+            "user-type": null,
+            "emotes-raw": null,
+            "badge-info-raw": "subscriber/21",
+            "badges-raw": "broadcaster/1,subscriber/0",
+            "username": "lumiastream",
+            "message-type": "chat",
+            "isSelf": false,
+            "vip": false,
+            "tier3": true,
+            "tier2": true,
+            "tier1": true,
+            "follower": false
+        }
     }
-  }
 }
 ```
 
@@ -433,17 +433,17 @@ Send a mock alert
 **Example:**
 
 ```c++
-await sdk.sendAlert({ alert: LumiaSDKAlertValues.TWITCH_FOLLOWER });
+await sdk.sendAlert({ alert: LumiaAlertValues.TWITCH_FOLLOWER });
 ```
 
 ---
 
 ## Resources
 
-- [Download the latest Lumia Stream SDK release](https://github.com/lumiastream/Lumia-SDK-JS/releases)
-- [Read the full API reference](https://dev.lumiastream.com)
-- [Run a mock server](https://github.com/lumiastream/Lumia-SDK-JS/examples)
-- [Browse some examples](https://github.com/lumiastream/Lumia-SDK-JS/examples)
+-   [Download the latest Lumia Stream SDK release](https://github.com/lumiastream/Lumia-SDK-JS/releases)
+-   [Read the full API reference](https://dev.lumiastream.com)
+-   [Run a mock server](https://github.com/lumiastream/Lumia-SDK-JS/examples)
+-   [Browse some examples](https://github.com/lumiastream/Lumia-SDK-JS/examples)
 
 ## Compiling from Terminal
 

@@ -18,7 +18,7 @@ class Lumia
 public:
 	typedef Lumia type;
 
-	Lumia(std::optional<std::string> token = {}, std::optional<std::string> name = {}, std::optional<std::string> host = {})
+	Lumia(std::optional<std::string> token = {}, std::optional<std::string> name = {}, std::optional<std::string> host = {}, const std::optional<int> &port = {})
 	{
 
 		if (token)
@@ -34,10 +34,15 @@ public:
 		if (host)
 		{
 			host_ = host.value();
+		}
+
+		if (port)
+		{
+			port_ = port.value();
 		}
 	}
 
-	void init(const std::function<void()> &cb, const std::optional<std::string> &token = {}, const std::optional<std::string> &name = {}, const std::optional<std::string> &host = {})
+	void init(const std::function<void()> &cb, const std::optional<std::string> &token = {}, const std::optional<std::string> &name = {}, const std::optional<std::string> &host = {}, const std::optional<int> &port = {})
 	{
 
 		if (token)
@@ -53,6 +58,11 @@ public:
 		if (host)
 		{
 			host_ = host.value();
+		}
+
+		if (port)
+		{
+			port_ = port.value();
 		}
 		stoped = false;
 		while (!stoped)
@@ -60,7 +70,7 @@ public:
 			isConnected = false;
 			endpoint_ = std::make_unique<Endpoint>();
 			endpoint_->setCB(cb, std::bind(&type::close, this, _1, _2), std::bind(&type::message, this, _1), std::bind(&type::fail, this, _1, _2, _3));
-			endpoint_->start(host_ + "/api?token=" + token_ + "&name=" + name_);
+			endpoint_->start("ws://" + host_ + ":" + port_ + "/api?token=" + token_ + "&name=" + name_);
 
 			if (delay_)
 			{
@@ -77,7 +87,7 @@ public:
 		sendWsMessage(o, cb);
 	};
 
-	void send(const ILumiaSdkSendPack &pack, const callback &cb = nullptr)
+	void send(const ILumiaSendPack &pack, const callback &cb = nullptr)
 	{
 
 		json o = pack.toJSONobj();
@@ -86,12 +96,12 @@ public:
 		sendWsMessage(o, cb);
 	}
 
-	void sendAlert(const LumiaSDKAlertValues &alert, const callback &cb = nullptr)
+	void sendAlert(const LumiaAlertValues &alert, const callback &cb = nullptr)
 	{
 
-		ILumiaSdkSendPack pack;
-		pack.type = LumiaSDKCommandTypes::ALERT;
-		pack.params.value = getTypeValue<LumiaSDKAlertValues>(alert);
+		ILumiaSendPack pack;
+		pack.type = LumiaCommandTypes::ALERT;
+		pack.params.value = getTypeValue<LumiaAlertValues>(alert);
 		send(pack, cb);
 	}
 
@@ -99,8 +109,8 @@ public:
 	void sendCommand(const std::string &command, const std::optional<bool> &default_ = std::nullopt, const std::optional<bool> &skipQueue = std::nullopt, const callback &cb = nullptr)
 	{
 
-		ILumiaSdkSendPack pack;
-		pack.type = LumiaSDKCommandTypes::CHAT_COMMAND;
+		ILumiaSendPack pack;
+		pack.type = LumiaCommandTypes::CHAT_COMMAND;
 		pack.params.value = command;
 		pack.params.hold = default_;
 		pack.params.skipQueue = skipQueue;
@@ -109,18 +119,18 @@ public:
 
 	// Sends a color pack
 	void sendColor(
-			const RGB &color,
-			const std::optional<int> &brightness = std::nullopt, // 0-100
-			const std::optional<int> &duration = std::nullopt,	 // In milliseconds
-			const std::optional<int> &transition = std::nullopt, // In milliseconds
-			const std::optional<bool> &default_ = std::nullopt,
-			const std::optional<bool> &skipQueue = std::nullopt,
-			const std::optional<std::vector<ILumiaSdkLight> > &lights = std::nullopt,
-			const callback &cb = nullptr)
+		const RGB &color,
+		const std::optional<int> &brightness = std::nullopt, // 0-100
+		const std::optional<int> &duration = std::nullopt,	 // In milliseconds
+		const std::optional<int> &transition = std::nullopt, // In milliseconds
+		const std::optional<bool> &default_ = std::nullopt,
+		const std::optional<bool> &skipQueue = std::nullopt,
+		const std::optional<std::vector<ILumiaLight>> &lights = std::nullopt,
+		const callback &cb = nullptr)
 	{
 
-		ILumiaSdkSendPack pack;
-		pack.type = LumiaSDKCommandTypes::RGB_COLOR;
+		ILumiaSendPack pack;
+		pack.type = LumiaCommandTypes::RGB_COLOR;
 		pack.params.brightness = brightness;
 		pack.params.duration = duration;
 		pack.params.transition = transition;
@@ -134,8 +144,8 @@ public:
 	void sendBrightness(const int &brightness, const std::optional<int> &transition = std::nullopt, const std::optional<bool> &skipQueue = std::nullopt, const callback &cb = nullptr)
 	{
 
-		ILumiaSdkSendPack pack;
-		pack.type = LumiaSDKCommandTypes::RGB_COLOR;
+		ILumiaSendPack pack;
+		pack.type = LumiaCommandTypes::RGB_COLOR;
 		pack.params.brightness = brightness;
 		pack.params.transition = transition;
 		pack.params.skipQueue = skipQueue;
@@ -145,8 +155,8 @@ public:
 	// Sends tts
 	void sendTts(const std::string &text, const std::optional<int> volume = std::nullopt, const std::optional<std::string> &voice = std::nullopt, const callback &cb = nullptr)
 	{
-		ILumiaSdkSendPack pack;
-		pack.type = LumiaSDKCommandTypes::TTS;
+		ILumiaSendPack pack;
+		pack.type = LumiaCommandTypes::TTS;
 		pack.params.value = text;
 		pack.params.volume = volume;
 		pack.params.voice = voice;
@@ -156,10 +166,60 @@ public:
 	// Sends Chatbot message
 	void sendChatbot(const Platforms &platform, const std::string &text, const callback &cb = nullptr)
 	{
-		ILumiaSdkSendPack pack;
-		pack.type = LumiaSDKCommandTypes::CHATBOT_MESSAGE;
+		ILumiaSendPack pack;
+		pack.type = LumiaCommandTypes::CHATBOT_MESSAGE;
 		pack.params.value = text;
 		pack.params.platform = platform;
+		send(pack, cb);
+	};
+
+	// Games glow functions
+
+	void getGamesGlowSettings(const callback &cb = nullptr)
+	{
+		json o = {};
+		o["method"] = "gamesGlowSettings";
+		o["gamesGlowName"] = name_;
+		sendWsMessage(o, cb);
+	};
+
+	void sendGamesGlowAlert(const std::string &glowId, const std::string &value, const callback &cb = nullptr)
+	{
+		ILumiaSendPack pack;
+		pack.type = LumiaCommandTypes::GAMESGLOW_ALERT;
+		pack.gamesGlowName = name_;
+		pack.glowId = glowId;
+		pack.params.value = value;
+		send(pack, cb);
+	};
+
+	void sendGamesGlowCommand(const std::string &glowId, const std::string &value, const callback &cb = nullptr)
+	{
+		ILumiaSendPack pack;
+		pack.type = LumiaCommandTypes::GAMESGLOW_COMMAND;
+		pack.gamesGlowName = name_;
+		pack.glowId = glowId;
+		pack.params.value = value;
+		send(pack, cb);
+	};
+
+	void sendGamesGlowVariableUpdate(const std::string &glowId, const std::string &value, const callback &cb = nullptr)
+	{
+		ILumiaSendPack pack;
+		pack.type = LumiaCommandTypes::GAMESGLOW_VARIABLE;
+		pack.gamesGlowName = name_;
+		pack.glowId = glowId;
+		pack.params.value = value;
+		send(pack, cb);
+	};
+
+	void sendGamesGlowVirtualLightsChange(const std::string &glowId, const std::string &value, const callback &cb = nullptr)
+	{
+		ILumiaSendPack pack;
+		pack.type = LumiaCommandTypes::GAMESGLOW_VIRTUALLIGHT;
+		pack.gamesGlowName = name_;
+		pack.glowId = glowId;
+		pack.params.value = value;
 		send(pack, cb);
 	};
 
@@ -182,7 +242,8 @@ public:
 private:
 	std::string token_;
 	std::string name_;
-	std::string host_ = "ws://127.0.0.1:39231";
+	std::string host_ = "127.0.0.1";
+	std::string port_ = 39231;
 	std::unique_ptr<Endpoint> endpoint_;
 
 	void sendWsMessage(json &o, callback cb = nullptr)
@@ -252,8 +313,8 @@ private:
 				auto cb = cbs.find(*context);
 				if (cb != cbs.end())
 				{
-					//j.erase("context");
-					//j.erase("event");
+					// j.erase("context");
+					// j.erase("event");
 					cb->second(j);
 				};
 				return;

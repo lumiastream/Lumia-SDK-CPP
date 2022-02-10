@@ -9,11 +9,10 @@
 #include "typesLookup.h"
 #include <stdexcept>
 
-
 // for convenience
 using json = nlohmann::json;
 
-enum class LumiaSDKCommandTypes : int
+enum class LumiaCommandTypes : int
 {
     ALERT = 1,
     MIDI = 2,
@@ -29,10 +28,14 @@ enum class LumiaSDKCommandTypes : int
     STUDIO_ANIMATION = 12,
     STUDIO_THEME = 13,
     CHATBOT_MESSAGE = 14,
-    TTS = 15
+    TTS = 15,
+    GAMESGLOW_ALERT = 201,
+    GAMESGLOW_COMMAND = 202,
+    GAMESGLOW_VARIABLE = 203,
+    GAMESGLOW_VIRTUALLIGHT = 204,
 };
 
-enum class LumiaSDKAlertValues
+enum class LumiaAlertValues
 {
     TWITCH_FOLLOWER = 16,
     TWITCH_SUBSCRIBER = 17,
@@ -67,7 +70,7 @@ enum class LumiaSDKAlertValues
     PULSE_CALORIES = 46
 };
 
-enum class LumiaSdkEventTypes
+enum class LumiaEventTypes
 {
     STATES = 47,
     CHAT = 48,
@@ -77,6 +80,9 @@ enum class LumiaSdkEventTypes
     TROVO_SPELL = 52,
     PULSE = 53,
     ALERT = 54,
+    GAMESGLOW_ALERT = 55,
+    GAMESGLOW_COMMAND = 56,
+    GAMESGLOW_VIRTUALLIGHT = 57,
 };
 
 enum class Platforms
@@ -143,9 +149,9 @@ static const std::string getTypeValue(T value)
 };
 
 template <class T>
-static const T getTypeValueFromString(const std::string& value_type, const std::string& value)
+static const T getTypeValueFromString(const std::string &value_type, const std::string &value)
 {
-  
+
     if (value_type == "LumiaSDKCommandTypes")
     {
         return static_cast<T>(types_values_str_LumiaSDKCommandTypes[value]);
@@ -189,30 +195,30 @@ struct ExtraSetting
     std::optional<int> bits;
 };
 
-struct ILumiaSdkEventData
+struct ILumiaEventData
 {
     std::optional<std::string> username;
     std::optional<std::string> command;
 };
 
-struct ILumiaSdkEvent
+struct ILumiaEvent
 {
     EventOrigins origin;
-    LumiaSdkEventTypes type;
-    ILumiaSdkEventData data;
+    LumiaEventTypes type;
+    ILumiaEventData data;
 };
 
-struct ILumiaSdkLight
+struct ILumiaLight
 {
     LightBrands type;
     std::variant<std::string, int> id;
 };
 
-struct LumiaSDKPackParams
+struct LumiaPackParams
 {
 
     std::variant<std::string, RGB> value;
-    std::optional<std::vector<ILumiaSdkLight>> lights;
+    std::optional<std::vector<ILumiaLight>> lights;
     std::optional<bool> hold;      // Sets this command to default or not
     std::optional<bool> skipQueue; // Skips the queue and instantly turns to this color
 
@@ -229,11 +235,13 @@ struct LumiaSDKPackParams
 
     std::optional<ExtraSetting> extraSettings; // Mainly used to pass in variables for things like TTS or Chat bot
 };
-class ILumiaSdkSendPack
+class ILumiaSendPack
 {
 public:
-    LumiaSDKCommandTypes type;
-    LumiaSDKPackParams params;
+    LumiaCommandTypes type;
+    LumiaPackParams params;
+    LumiaPackParams gamesGlowName;
+    LumiaPackParams glowId;
 
     json toJSONobj() const
     {
@@ -242,7 +250,16 @@ public:
 
         j["params"] = {};
 
-        auto* vpt = std::get_if<std::string>(&params.value);
+        if (gamesGlowName)
+        {
+            j["gamesGlowName"] = gamesGlowName;
+        }
+        if (glowId)
+        {
+            j["glowId"] = glowId;
+        }
+
+        auto *vpt = std::get_if<std::string>(&params.value);
         if (vpt != nullptr)
         {
             j["params"]["value"] = *vpt;
@@ -251,7 +268,7 @@ public:
         {
 
             j["params"]["value"] = {};
-            const RGB& rgb = std::get<RGB>(params.value);
+            const RGB &rgb = std::get<RGB>(params.value);
 
             if (rgb.r != std::nullopt)
             {
@@ -272,20 +289,20 @@ public:
         {
             j["params"]["lights"] = json::array();
             int i = 0;
-            for (const ILumiaSdkLight& light : params.lights.value())
+            for (const ILumiaLight &light : params.lights.value())
             {
-                auto* idpt = std::get_if<int>(&light.id);
+                auto *idpt = std::get_if<int>(&light.id);
                 if (idpt != nullptr)
                 {
                     j["params"]["lights"][i++] = {
                         {"type", light.type},
-                        {"id", std::get<int>(light.id)} };
+                        {"id", std::get<int>(light.id)}};
                 }
                 else
                 {
                     j["params"]["lights"][i++] = {
                         {"type", light.type},
-                        {"id", std::get<std::string>(light.id)} };
+                        {"id", std::get<std::string>(light.id)}};
                 }
             }
         }

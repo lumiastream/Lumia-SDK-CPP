@@ -3,13 +3,13 @@
 void testSends(Lumia lumia)
 {
 	// Sending an alert event example
-	lumia.sendAlert(LumiaSDKAlertValues::TWITCH_FOLLOWER);
+	lumia.sendAlert(LumiaAlertValues::TWITCH_FOLLOWER);
 
 	// Sending a command; with a callback to get the result for this call
-	lumia.sendCommand("red", {}, {}, [&](json& res)
-		{ std::cout << res.dump() << std::endl; });
+	lumia.sendCommand("red", {}, {}, [&](json &res)
+					  { std::cout << res.dump() << std::endl; });
 
-	lumia.sendColor({ 255, 0, 255 }, 60, 1000);
+	lumia.sendColor({255, 0, 255}, 60, 1000);
 
 	// Sending a brightness
 	lumia.sendBrightness(100);
@@ -21,11 +21,11 @@ void testSends(Lumia lumia)
 	lumia.sendChatbot(Platforms::TWITCH, "This SDK is the best");
 
 	// Sending a raw event example
-	ILumiaSdkSendPack pack;
+	ILumiaSendPack pack;
 
-	pack = ILumiaSdkSendPack();
-	pack.type = LumiaSDKCommandTypes::ALERT;
-	pack.params.value = getTypeValue(LumiaSDKAlertValues::TWITCH_FOLLOWER);
+	pack = ILumiaSendPack();
+	pack.type = LumiaCommandTypes::ALERT;
+	pack.params.value = getTypeValue(LumiaAlertValues::TWITCH_FOLLOWER);
 	lumia.send(pack);
 }
 
@@ -36,7 +36,7 @@ int main()
 	Lumia lumia = Lumia();
 
 	lumia.init([&]()
-		{
+			   {
 			std::cout << "inited" << std::endl;
 
 			lumia.getInfo([&](json& res)
@@ -101,9 +101,8 @@ int main()
 
 			// Uncomment this to test out sending events
 			// testSends(lumia);
-			// lumia.stop();
-		},
-		token, appName);
+			// lumia.stop(); },
+			   token, appName);
 
 	return 0;
 }
