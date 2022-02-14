@@ -125,7 +125,7 @@ public:
 		const std::optional<int> &transition = std::nullopt, // In milliseconds
 		const std::optional<bool> &default_ = std::nullopt,
 		const std::optional<bool> &skipQueue = std::nullopt,
-		const std::optional<std::vector<ILumiaLight>> &lights = std::nullopt,
+		const std::optional<std::vector<ILumiaLight> > &lights = std::nullopt,
 		const callback &cb = nullptr)
 	{
 
@@ -179,46 +179,46 @@ public:
 	{
 		json o = {};
 		o["method"] = "gamesGlowSettings";
-		o["gamesGlowName"] = name_;
+		o["gamesGlowKey"] = name_;
 		sendWsMessage(o, cb);
 	};
 
-	void sendGamesGlowAlert(const std::string &glowId, const std::string &value, const callback &cb = nullptr)
+	void sendGamesGlowAlert(const std::string &gamesGlowId, const std::string &value, const callback &cb = nullptr)
 	{
 		ILumiaSendPack pack;
 		pack.type = LumiaCommandTypes::GAMESGLOW_ALERT;
-		pack.gamesGlowName = name_;
-		pack.glowId = glowId;
+		pack.gamesGlowKey = name_;
+		pack.gamesGlowId = gamesGlowId;
 		pack.params.value = value;
 		send(pack, cb);
 	};
 
-	void sendGamesGlowCommand(const std::string &glowId, const std::string &value, const callback &cb = nullptr)
+	void sendGamesGlowCommand(const std::string &gamesGlowId, const std::string &value, const callback &cb = nullptr)
 	{
 		ILumiaSendPack pack;
 		pack.type = LumiaCommandTypes::GAMESGLOW_COMMAND;
-		pack.gamesGlowName = name_;
-		pack.glowId = glowId;
+		pack.gamesGlowKey = name_;
+		pack.gamesGlowId = gamesGlowId;
 		pack.params.value = value;
 		send(pack, cb);
 	};
 
-	void sendGamesGlowVariableUpdate(const std::string &glowId, const std::string &value, const callback &cb = nullptr)
+	void sendGamesGlowVariableUpdate(const std::string &gamesGlowId, const std::string &value, const callback &cb = nullptr)
 	{
 		ILumiaSendPack pack;
 		pack.type = LumiaCommandTypes::GAMESGLOW_VARIABLE;
-		pack.gamesGlowName = name_;
-		pack.glowId = glowId;
+		pack.gamesGlowKey = name_;
+		pack.gamesGlowId = gamesGlowId;
 		pack.params.value = value;
 		send(pack, cb);
 	};
 
-	void sendGamesGlowVirtualLightsChange(const std::string &glowId, const std::string &value, const callback &cb = nullptr)
+	void sendGamesGlowVirtualLightsChange(const std::string &gamesGlowId, const std::string &value, const callback &cb = nullptr)
 	{
 		ILumiaSendPack pack;
 		pack.type = LumiaCommandTypes::GAMESGLOW_VIRTUALLIGHT;
-		pack.gamesGlowName = name_;
-		pack.glowId = glowId;
+		pack.gamesGlowKey = name_;
+		pack.gamesGlowId = gamesGlowId;
 		pack.params.value = value;
 		send(pack, cb);
 	};

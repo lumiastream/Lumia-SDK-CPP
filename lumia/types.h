@@ -240,8 +240,8 @@ class ILumiaSendPack
 public:
     LumiaCommandTypes type;
     LumiaPackParams params;
-    LumiaPackParams gamesGlowName;
-    LumiaPackParams glowId;
+    LumiaPackParams gamesGlowKey;
+    LumiaPackParams gamesGlowId;
 
     json toJSONobj() const
     {
@@ -250,13 +250,13 @@ public:
 
         j["params"] = {};
 
-        if (gamesGlowName)
+        if (gamesGlowKey)
         {
-            j["gamesGlowName"] = gamesGlowName;
+            j["gamesGlowKey"] = gamesGlowKey;
         }
-        if (glowId)
+        if (gamesGlowId)
         {
-            j["glowId"] = glowId;
+            j["gamesGlowId"] = gamesGlowId;
         }
 
         auto *vpt = std::get_if<std::string>(&params.value);
