@@ -18,7 +18,7 @@ class Lumia
 public:
 	typedef Lumia type;
 
-	Lumia(std::optional<std::string> token = {}, std::optional<std::string> name = {}, std::optional<std::string> host = {}, const std::optional<int> &port = {})
+	Lumia(std::optional<std::string> token = {}, std::optional<std::string> name = {}, std::optional<std::string> host = {}, const std::optional<int> &port = {}, const std::optional<bool> &deck = {}, const std::optional<string> &endpoint = {})
 	{
 
 		if (token)
@@ -34,6 +34,16 @@ public:
 		if (host)
 		{
 			host_ = host.value();
+		}
+
+		if (endpoint)
+		{
+			endpoint_ = endpoint.value();
+		}
+
+		if (deck)
+		{
+			deck_ = deck.value();
 		}
 
 		if (port)
@@ -60,6 +70,16 @@ public:
 			host_ = host.value();
 		}
 
+		if (endpoint)
+		{
+			endpoint_ = endpoint.value();
+		}
+
+		if (deck)
+		{
+			deck_ = deck.value();
+		}
+
 		if (port)
 		{
 			port_ = port.value();
@@ -70,7 +90,18 @@ public:
 			isConnected = false;
 			endpoint_ = std::make_unique<Endpoint>();
 			endpoint_->setCB(cb, std::bind(&type::close, this, _1, _2), std::bind(&type::message, this, _1), std::bind(&type::fail, this, _1, _2, _3));
-			endpoint_->start("ws://" + host_ + ":" + port_ + "/api?token=" + token_ + "&name=" + name_);
+
+			std::string url = "ws://" + host_;
+			if (deck_)
+			{
+				url += ":39222?token=" + token_ + "&origin=" + name_ + "&name=" + name_;
+			}
+			else
+			{
+				url += ":" + port_ + "/" + endpoint_ + "?token=" + token_ + "&origin=" + name_ + "&name=" + name_;
+			}
+
+			endpoint_->start(url);
 
 			if (delay_)
 			{
@@ -105,6 +136,15 @@ public:
 		send(pack, cb);
 	}
 
+	void sendAlert(const std::string &alert, const callback &cb = nullptr)
+	{
+
+		ILumiaSendPack pack;
+		pack.type = LumiaCommandTypes::ALERT;
+		pack.params.value = alert;
+		send(pack, cb);
+	}
+
 	// Sends command
 	void sendCommand(const std::string &command, const std::optional<bool> &default_ = std::nullopt, const std::optional<bool> &skipQueue = std::nullopt, const callback &cb = nullptr)
 	{
@@ -125,12 +165,37 @@ public:
 		const std::optional<int> &transition = std::nullopt, // In milliseconds
 		const std::optional<bool> &default_ = std::nullopt,
 		const std::optional<bool> &skipQueue = std::nullopt,
-		const std::optional<std::vector<ILumiaLight> > &lights = std::nullopt,
+		const std::optional<std::vector<ILumiaLight>> &lights = std::nullopt,
 		const callback &cb = nullptr)
 	{
 
 		ILumiaSendPack pack;
 		pack.type = LumiaCommandTypes::RGB_COLOR;
+		pack.params.value = color;
+		pack.params.brightness = brightness;
+		pack.params.duration = duration;
+		pack.params.transition = transition;
+		pack.params.hold = default_;
+		pack.params.skipQueue = skipQueue;
+		pack.params.lights = lights;
+		send(pack, cb);
+	};
+
+	// Sends a hex color pack
+	void sendHexColor(
+		const std::string &color,
+		const std::optional<int> &brightness = std::nullopt, // 0-100
+		const std::optional<int> &duration = std::nullopt,	 // In milliseconds
+		const std::optional<int> &transition = std::nullopt, // In milliseconds
+		const std::optional<bool> &default_ = std::nullopt,
+		const std::optional<bool> &skipQueue = std::nullopt,
+		const std::optional<std::vector<ILumiaLight>> &lights = std::nullopt,
+		const callback &cb = nullptr)
+	{
+
+		ILumiaSendPack pack;
+		pack.type = LumiaCommandTypes::HEX_COLOR;
+		pack.params.value = color;
 		pack.params.brightness = brightness;
 		pack.params.duration = duration;
 		pack.params.transition = transition;
@@ -243,6 +308,8 @@ private:
 	std::string token_;
 	std::string name_;
 	std::string host_ = "127.0.0.1";
+	std::string endpoint_ = "api";
+	bool deck_ = false;
 	std::string port_ = 39231;
 	std::unique_ptr<Endpoint> endpoint_;
 
